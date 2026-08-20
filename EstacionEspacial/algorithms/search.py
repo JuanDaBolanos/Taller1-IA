@@ -53,8 +53,57 @@ def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
     """
     Search the node that has the lowest combined cost and heuristic first.
     """
+    nodo_inicio = problem.getStartState()
+    frontera = utils.PriorityQueue()
+    alcanzados = {}
+    frontera.push(nodo_inicio, 0)
+    padre_nodo_actual = None
+    while not (frontera.isEmpty):
+        nodo_actual = frontera.pop()
+        g_nodo_actual = calcular_g(alcanzados, nodo_actual)
+        alcanzados[nodo_actual] = {"padre":padre_nodo_actual, "f(n)":heuristic(nodo_actual, problem) + g_nodo_actual }
+        if problem.isGoalState(nodo_actual):
+            return calcular_camino_optimo(alcanzados, nodo_actual)
+        
+        
+        sucesores_nodo_actual = SearchProblem.getSuccessors(nodo_actual)
+        for sucesor in sucesores_nodo_actual:
+            nodo_sucesor = sucesor[0]
+            
+            if nodo_sucesor not in alcanzados:
+                costo_fn_nodo_actual = calcular_g() + heuristic(nodo_actual, problem)
+                frontera.update(nodo_actual, costo_fn_nodo_actual)
+                
+            
+            
+        
+        
+        
+        
+    
+    
+    
     # TODO: Add your code here
     utils.raiseNotDefined()
+    
+def calcular_g(alcanzados, nodo_padre):
+    #No estoy seguro del tipo del segundo parametro...
+    g = 0
+    while nodo_padre is not None:
+        g+=1
+        nodo_padre = alcanzados[nodo_padre]["padre"]
+        
+    return g+1
+
+def alcular_camino_optimo(alcanzados, nodo_meta):
+    #Reconstruye una lista con el camino desde el nodo meta hasta el origen
+    camino = [nodo_meta]
+    padre = alcanzados[nodo_meta]["padre"]
+    while padre is not None:
+        camino.append(padre)
+    return camino
+    
+
 
 
 # Abbreviations (you can use them for the -f option in main.py)
