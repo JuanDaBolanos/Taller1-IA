@@ -46,7 +46,50 @@ def uniformCostSearch(problem: SearchProblem):
     """
 
     # TODO: Add your code here
-    utils.raiseNotDefined()
+    """
+    1. Versión inicial propia.
+    
+    nodoInicial = problem.getStartState()
+    frontera = utils.PriorityQueue()
+    utils.PriorityQueue.push(frontera, (nodoInicial, 0), 0)
+    alcanzados = utils.Counter()
+    
+    while utils.PriorityQueue.isEmpty(frontera) is False:
+        nodo = utils.PriorityQueue.pop(frontera)
+        if problem.isGoalState(nodo[0]):
+            return nodo[0]
+        alcanzados[nodo[0]] += 1
+        for hijo in problem.getSuccessors(nodo[0]):
+            estadoHijo = hijo[0]
+            costo = hijo[2] + nodo[1]
+            if alcanzados[estadoHijo] == 0:
+                utils.PriorityQueue.update(frontera, (estadoHijo, costo), costo)
+    return None
+    
+    Al probarlo se obtenía un error en el método directionToVector de la clase Actions (archivo game).
+    Tras revisar la implementación con ayuda de la IA con el propmt "Por qué con esta implementación 
+    de UCS falla en el método directions de otra clase? (...)" Y se llegó a la conclusión de que era porque
+    no se almacenaba una lista de acciones que llevaban a un nuevo estado.
+    """
+    #Versión final
+    nodoInicial = problem.getStartState()
+    frontera = utils.PriorityQueue()
+    utils.PriorityQueue.push(frontera, (nodoInicial, [], 0), 0)
+    alcanzados = utils.Counter()
+    
+    while utils.PriorityQueue.isEmpty(frontera) is False:
+        nodo, acciones, costo = utils.PriorityQueue.pop(frontera)
+        if problem.isGoalState(nodo):
+            return acciones
+        alcanzados[nodo] += 1
+        for hijo in problem.getSuccessors(nodo):
+            estadoHijo = hijo[0]
+            accionHijo = hijo[1]
+            costo = hijo[2] + costo
+            if alcanzados[estadoHijo] == 0:
+                utils.PriorityQueue.update(frontera, (estadoHijo, acciones+[accionHijo] , costo), costo)
+    
+    return None
 
 
 def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
