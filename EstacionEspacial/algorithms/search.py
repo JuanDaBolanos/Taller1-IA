@@ -53,20 +53,23 @@ def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
     """
     Search the node that has the lowest combined cost and heuristic first.
     """
-    nodo_inicio = problem.getStartState()
+    """
+    Version incial:
+    start_state = problem.getStartState()
     frontera = utils.PriorityQueue()
     alcanzados = {}
     frontera.push(nodo_inicio, 0)
     padre_nodo_actual = None
-    while not (frontera.isEmpty):
-        nodo_actual = frontera.pop()
+    
+    while not (frontera.isEmpty()):
+        nodo_actual, acciones, g_actual = frontera.pop()
+        #nodo_actual = frontera.pop()
         g_nodo_actual = calcular_g(alcanzados, nodo_actual)
         alcanzados[nodo_actual] = {"padre":padre_nodo_actual, "f(n)":heuristic(nodo_actual, problem) + g_nodo_actual }
         if problem.isGoalState(nodo_actual):
             return calcular_camino_optimo(alcanzados, nodo_actual)
-        
-        
-        sucesores_nodo_actual = SearchProblem.getSuccessors(nodo_actual)
+            
+        sucesores_nodo_actual = problem.getSuccessors(nodo_actual)
         for sucesor in sucesores_nodo_actual:
             nodo_sucesor = sucesor[0]
             
@@ -74,17 +77,54 @@ def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
                 costo_fn_nodo_actual = calcular_g() + heuristic(nodo_actual, problem)
                 frontera.update(nodo_actual, costo_fn_nodo_actual)
                 
+    def calcular_camino_optimo(alcanzados, nodo_meta):
+    #Reconstruye una lista con el camino desde el nodo meta hasta el origen
+    camino = [nodo_meta]
+    padre = alcanzados[nodo_meta]["padre"]
+    while padre is not None:
+        camino.append(padre)
+    return camino
+                
+    1. El principal error que la IA encontro en este codigo es que estaba
+    retornando una lista de estados en lugar de una lista de acciones.
+    
+    2. Ademas, la IA me ayudo a comprender mejor la estrucutra del problem
+    
+    3. Por ultimo, guardar una lista indicando el camino en cada nodo
+    resulto ser una solucion mas limpia para retornar el resultado
+                         
+    """
+    #print("Start:", problem.getStartState())
+    #print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
+    #print("Start's successors:", problem.getSuccessors(problem.getStartState()))
+    start_state = problem.getStartState()
+    
+    frontera = utils.PriorityQueue()
+    
+    frontera.push((start_state, [], 0), heuristic(start_state, problem))
+    
+    alcanzados = {}
+    
+    while not frontera.isEmpty():
+        nodo_actual, acciones, g_actual = frontera.pop()
+        
+        if problem.isGoalState(nodo_actual):
+            return acciones
+        
+        
+        if nodo_actual in alcanzados and alcanzados[nodo_actual] <= g_actual:
+            continue
             
+        alcanzados[nodo_actual] = g_actual
+        
+        for sucesor, accion, costo_paso in problem.getSuccessors(nodo_actual):
+            nuevo_g = g_actual + costo_paso
+            nuevo_f = nuevo_g + heuristic(sucesor, problem)
             
-        
-        
-        
-        
-    
-    
-    
-    # TODO: Add your code here
-    utils.raiseNotDefined()
+            if sucesor not in alcanzados or alcanzados[sucesor] > nuevo_g:
+                frontera.push((sucesor, acciones + [accion], nuevo_g), nuevo_f)
+                
+    return []
     
 def calcular_g(alcanzados, nodo_padre):
     #No estoy seguro del tipo del segundo parametro...
@@ -95,13 +135,7 @@ def calcular_g(alcanzados, nodo_padre):
         
     return g+1
 
-def alcular_camino_optimo(alcanzados, nodo_meta):
-    #Reconstruye una lista con el camino desde el nodo meta hasta el origen
-    camino = [nodo_meta]
-    padre = alcanzados[nodo_meta]["padre"]
-    while padre is not None:
-        camino.append(padre)
-    return camino
+
     
 
 
