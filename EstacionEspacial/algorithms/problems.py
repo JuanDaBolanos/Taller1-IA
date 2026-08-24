@@ -269,7 +269,28 @@ class ModuleRepairProblem(SearchProblem):
         successors = []
         self._expanded += 1
         # TODO: Add your code here
-
+        position, hasModule = state 
+        for action in [ 
+            Directions.NORTH, 
+            Directions.SOUTH, 
+            Directions.EAST, 
+            Directions.WEST, 
+        ]: 
+            x, y = position 
+            dx, dy = Actions.directionToVector(action) 
+            nextx, nexty = int(x + dx), int(y + dy) 
+            
+            if not self.walls[nextx][nexty]: 
+                nextPosition = (nextx, nexty)
+                cost = self._getStepCost(nextPosition, hasModule)
+                
+                if self.modulePosition == nextPosition: 
+                    nextHasModule = True 
+                else: nextHasModule = hasModule 
+                
+                nextState = (nextPosition, nextHasModule) 
+                successors.append((nextState, action, cost)) 
+        
         return successors
 
     def getCostOfActions(self, actions):
