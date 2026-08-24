@@ -60,8 +60,25 @@ def euclideanHeuristic(state, problem):
     - the nearest pending T if the robot has the kit and systems remain.
     - C if all systems have been repaired.
     """
-    # TODO: Add your code here
-    utils.raiseNotDefined()
+    position, hasKit, pendingSystems = state
+    if not hasKit:
+        objetivo = problem.kitPosition
+        
+    elif len(pendingSystems) > 0:
+        smallest_euclidean = math.inf
+        for cord in state[2]:
+            x_cordinate = cord[0]
+            y_cordinate = cord[1]   
+            new_euclidean= math.sqrt((state[0][0] - x_cordinate)**2 + (state[0][1] - y_cordinate)**2)
+            if (new_euclidean<smallest_euclidean):
+                smallest_euclidean = new_euclidean
+        return smallest_euclidean
+    
+    else:
+        objetivo = problem.controlPosition
+
+    return math.sqrt((position[0] - objetivo[0])**2 + (position[1] - objetivo[1])**2)
+    #utils.raiseNotDefined()
 
 
 def systemRepairHeuristic(
@@ -80,6 +97,38 @@ def systemRepairHeuristic(
     - Go with some simple heuristics first, then build up to more complex ones
     - Consider the kit, pending systems, and the final return to control center
     - Balance heuristic strength vs. computation time (do experiments!)
+    
+    
+    Version inicial:
+    def systemRepairHeuristic(
+    state: Tuple[Tuple, bool, Tuple], problem: SystemRepairProblem
+): 
+    min_to_kit = 0
+    if state[1]:
+        min_to_kit = 1
+    min_to_goal = 0
+    if not problem.isGoalState(problem):
+        min_to_goal = 1
+    return manhattanHeuristic(state, problem) + min_to_goal + min_to_kit + len(problem[2])
+    
+    1. Esta primera version resulta no ser admisible ya que 
+    ademas de calcular manhattan, calcula un movimiento de mas
+    para cada objetivo faltante
+    
+    2. La IA redirecciono mi enfoque:
+    - Calculando manhattan hacia el objetivo mas cercano
+    - Asumir de forma optimista que solo es necesario un movimiento
+    hacia el resto de objetivos
     """
-    # TODO: Add your code here
-    utils.raiseNotDefined()
+    position, hasKit, pendingSystems = state
+    base = manhattanHeuristic(state, problem)
+
+    if not hasKit:
+        extra = len(pendingSystems)          
+    elif len(pendingSystems) > 0:
+        extra = max(0, len(pendingSystems) - 1) 
+    else:
+        extra = 0
+
+    return base + extra
+    
