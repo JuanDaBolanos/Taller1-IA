@@ -110,7 +110,7 @@ def uniformCostSearch(problem: SearchProblem):
         for hijo in problem.getSuccessors(nodo):
             estadoHijo = hijo[0]
             accionHijo = hijo[1]
-            costoHijo = hijo[2] + costoHijo
+            costoHijo = hijo[2] + costo
             if alcanzados[estadoHijo] == 0:
                 utils.PriorityQueue.update(frontera, (estadoHijo, acciones+[accionHijo] , costoHijo), costoHijo)
     
