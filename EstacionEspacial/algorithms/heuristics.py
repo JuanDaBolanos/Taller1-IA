@@ -81,54 +81,131 @@ def euclideanHeuristic(state, problem):
     #utils.raiseNotDefined()
 
 
+
+    
+
+def _manhattan(a, b):
+    """Manhattan distance between two (x, y) points."""
+    return abs(a[0] - b[0]) + abs(a[1] - b[1])
+
+
+def _mstCost(points, distanceFn):
+    """
+    Sum of edge weights of a Minimum Spanning Tree connecting `points`.
+
+    This gives a lower bound on the total travel needed to visit every
+    point in `points` at least once, which is exactly what we need to
+    estimate the remaining cost of repairing several systems.
+    """
+    points = list(points)
+    if len(points) <= 1:
+        return 0
+
+    inTree = {points[0]}
+    remaining = set(points[1:])
+    totalCost = 0
+
+    while remaining:
+        bestCost, bestNode = min(
+            (distanceFn(a, b), b) for a in inTree for b in remaining
+        )
+        totalCost += bestCost
+        inTree.add(bestNode)
+        remaining.remove(bestNode)
+
+    return totalCost
+
+
 def systemRepairHeuristic(
     state: Tuple[Tuple, bool, Tuple], problem: SystemRepairProblem
 ):
     """
-    Your heuristic for the SystemRepairProblem.
-
-    state: (position, hasKit, pendingSystems)
-    problem: SystemRepairProblem instance
-
-    This must be admissible and preferably consistent.
-
-    Hints:
-    - Use problem.heuristicInfo to cache expensive computations
-    - Go with some simple heuristics first, then build up to more complex ones
-    - Consider the kit, pending systems, and the final return to control center
-    - Balance heuristic strength vs. computation time (do experiments!)
+     Your heuristic for the SystemRepairProblem.
     
+        state: (position, hasKit, pendingSystems)
+        problem: SystemRepairProblem instance
     
+        This must be admissible and preferably consistent.
+    
+        Hints:
+        - Use problem.heuristicInfo to cache expensive computations
+        - Go with some simple heuristics first, then build up to more complex ones
+        - Consider the kit, pending systems, and the final return to control center
+        - Balance heuristic strength vs. computation time (do experiments!)
+        
     Version inicial:
-    def systemRepairHeuristic(
-    state: Tuple[Tuple, bool, Tuple], problem: SystemRepairProblem
-): 
-    min_to_kit = 0
-    if state[1]:
-        min_to_kit = 1
-    min_to_goal = 0
-    if not problem.isGoalState(problem):
-        min_to_goal = 1
-    return manhattanHeuristic(state, problem) + min_to_goal + min_to_kit + len(problem[2])
+        def systemRepairHeuristic(
+        state: Tuple[Tuple, bool, Tuple], problem: SystemRepairProblem
+    ): 
+        min_to_kit = 0
+        if state[1]:
+            min_to_kit = 1
+        min_to_goal = 0
+        if not problem.isGoalState(problem):
+            min_to_goal = 1
+        return manhattanHeuristic(state, problem) + min_to_goal + min_to_kit + len(problem[2])
+        
+        1. Esta primera version resulta no ser admisible ya que 
+        ademas de calcular manhattan, calcula un movimiento de mas
+        para cada objetivo faltante
+        
+        2. La IA redirecciono mi enfoque:
+        - Calculando manhattan hacia el objetivo mas cercano
+        - Asumir de forma optimista que solo es necesario un movimiento
+        hacia el resto de objetivos
+        
+    Segunda version (Corregida con IA)
     
-    1. Esta primera version resulta no ser admisible ya que 
-    ademas de calcular manhattan, calcula un movimiento de mas
-    para cada objetivo faltante
+    position, hasKit, pendingSystems = state
+        base = manhattanHeuristic(state, problem)
     
-    2. La IA redirecciono mi enfoque:
-    - Calculando manhattan hacia el objetivo mas cercano
-    - Asumir de forma optimista que solo es necesario un movimiento
-    hacia el resto de objetivos
+        if not hasKit:
+            extra = len(pendingSystems)          
+        elif len(pendingSystems) > 0:
+            extra = max(0, len(pendingSystems) - 1) 
+        else:
+            extra = 0
+    
+        return base + extra
+        
+        1. La heuristica ya es admisible pero en mapas grandes (47X25 tardaba mucho en completarse)
+        2. Esta version se tardaba mucho ya que era Manhattan + numero de objetivos faltantes.
+        NO habia mucha diferencia en comparacion a Manhattan
+    
+    Version final (Corregida con IA)
+    
+    1. En lugar de esperar que todos los objetivos faltantes esten muy cercas unos de otros
+    esta version calcula la ruta mas corta posible entre objetivos faltantes mediante MST
+    
+    2. La IA propuso este enfoque de usar un MST y realizo el codigo para calcular la ruta 
+    mas corta entre nodos faltantes, ya que estos no suelen cambiar de forma constante
     """
     position, hasKit, pendingSystems = state
-    base = manhattanHeuristic(state, problem)
+
+    if "T_distances" not in problem.heuristicInfo:
+        problem.heuristicInfo["T_distances"] = {
+            (a, b): _manhattan(a, b)
+            for a in problem.systemPositions
+            for b in problem.systemPositions
+        }
+    cachedDistances = problem.heuristicInfo["T_distances"]
+
+    def distanceFn(a, b):
+        
+        return cachedDistances.get((a, b), _manhattan(a, b))
 
     if not hasKit:
-        extra = len(pendingSystems)          
-    elif len(pendingSystems) > 0:
-        extra = max(0, len(pendingSystems) - 1) 
-    else:
-        extra = 0
+        targetPoints = pendingSystems + (problem.kitPosition,)
+        return _manhattan(position, problem.kitPosition) + _mstCost(
+            targetPoints, distanceFn
+        )
 
-    return base + extra
+    elif len(pendingSystems) > 0:
+
+        nearest = min(_manhattan(position, t) for t in pendingSystems)
+        targetPoints = pendingSystems + (problem.controlPosition,)
+        return nearest + _mstCost(targetPoints, distanceFn)
+
+    else:
+        return _manhattan(position, problem.controlPosition)
     
