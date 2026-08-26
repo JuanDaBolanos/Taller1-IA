@@ -37,7 +37,79 @@ def breadthFirstSearch(problem: SearchProblem):
     Search the shallowest nodes in the search tree first.
     """
     # TODO: Add your code here
-    utils.raiseNotDefined()
+    
+    """
+    1. Versión inicial propia
+    
+    nodoInicial = problem.getStartState()
+    if problem.isGoalState(nodoInicial):
+        return nodoInicial
+    
+    frontera = utils.Queue()
+    utils.Queue.push(frontera, (nodoInicial, '', 0))
+    alcanzados = utils.Counter() 
+    alcanzados[nodoInicial] = 1
+    
+    while utils.Queue.isEmpty(frontera) is False:
+        nodo, acciones, costo = utils.Queue.pop(frontera)
+        for hijo in problem.getSuccessors(nodo):
+            estadoHijo = hijo[0]
+            accionesHijo = hijo[1]
+            costoHijo = hijo[2]
+            
+            if problem.isGoalState(hijo):
+                return accionesHijo
+            if alcanzados[estadoHijo] == 0:
+                alcanzados[estadoHijo] += 1
+                utils.Queue.push(frontera, (estadoHijo, accionesHijo, costoHijo))
+    return None
+    
+    Al ejecutar la función de manera visual, el robot no se desplazaba y en una ejecución de terminal inmediata
+    realizaba la expansión de todos los nodos pero retornando un camino de coste 0 (es decir, sin alguna acción).
+    Esto debido a que no había guardado las acciones de alguna manera tal que al final el retorno sea el camino mediante
+    las acciones. 
+    Para ello, utilicé el siguiente prompt en Claude más mi versión inicial y la definición de algunas funciones:
+    
+    "Tengo esta función de BFS implementada para un espacio de estados. 
+    Se trata sobre un robot que se desplaza en las cuatro direcciones y busca en un laberinto de obstaculos. 
+    Tengo un problema en el que el robot permanece inmovil al ejecutar el programa y por ende no se puede encontrar el camino. 
+    Cuál podría ser la causa de dicho problema?"
+    
+    Me realizó las siguientes correciones:
+    - Bug en if problem.isGoalState(hijo): -> if problem.isGoalState(estadoHijo):
+    - Bug en utils.Queue.push(frontera, (estadoHijo, accionesHijo, costoHijo)) -> utils.Queue.push(frontera, (estadoHijo, acciones + [accionesHijo], costoHijo)):
+    - utils.Queue.push(frontera, (nodoInicial, ' ', 0)) -> utils.Queue.push(frontera, (nodoInicial, [], 0))
+    
+    Con estos cambios la función se ejecutaba correctamente y retornaba el camino esperado. Aprendí con esto que
+    es necesario guardar las acciones de manera acumulada en alguna estructura de datos tal que al final este sea
+    el resultado y podamos obtener el camino desde dicha estructura. 
+    
+    
+    """
+    #Version final
+    nodoInicial = problem.getStartState()
+    if problem.isGoalState(nodoInicial):
+        return nodoInicial
+    
+    frontera = utils.Queue()
+    utils.Queue.push(frontera, (nodoInicial, [], 0))
+    alcanzados = utils.Counter() 
+    alcanzados[nodoInicial] = 1
+    
+    while utils.Queue.isEmpty(frontera) is False:
+        nodo, acciones, costo = utils.Queue.pop(frontera)
+        for hijo in problem.getSuccessors(nodo):
+            estadoHijo = hijo[0]
+            accionHijo = hijo[1]
+            costoHijo = hijo[2]
+            
+            if problem.isGoalState(estadoHijo):
+                return acciones + [accionHijo]
+            if alcanzados[estadoHijo] == 0:
+                alcanzados[estadoHijo] += 1
+                utils.Queue.push(frontera, (estadoHijo, acciones + [accionHijo], costoHijo))
+    return None
+
 
 
 def uniformCostSearch(problem: SearchProblem):
