@@ -28,8 +28,49 @@ def depthFirstSearch(problem: SearchProblem):
     print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
-    # TODO: Add your code here
-    utils.raiseNotDefined()
+    """
+    IDEA PROPIA:
+    Lo que se hace es inicializar las estructuras de control. Particularmente la frontera se inicializa con el primer estado y su camino vacio.
+    Note que decidimos que cada elemento de la frontera tenga la forma (estado,lista_camino->[accion1,accion2,accion3]) de esta forma se hace sencillo trazar el camino,
+    añadir nuevas acciones, y retornarlo en caso de que estemos en el estado meta.
+    El resto del algoritmo es bastante fiel a las implementaciones clasicas como las aprendidas en EDA.
+    
+    alcanzados = utils.Counter()
+    frontera = utils.Stack()
+    inicial = (problem.getStartState(),[]) 
+    frontera.push(inicial)
+    while frontera.isEmpty() != True:
+        v,camino = frontera.pop()
+        alcanzados[v] = 1
+        if problem.isGoalState(v):
+            return camino
+        for elemento_vecino in problem.getSuccessors(v):
+            vecino = elemento_vecino[0]
+            accion = elemento_vecino[1]
+            if alcanzados[vecino] == 0:
+                frontera.push((vecino,camino + [accion]))
+    return []
+    
+    
+    
+    """
+    alcanzados = utils.Counter()
+    frontera = utils.Stack()
+    inicial = (problem.getStartState(),[]) 
+    frontera.push(inicial)
+    while frontera.isEmpty() != True:
+        v,camino = frontera.pop()
+        if alcanzados[v] == 1: #Con ayuda de la IA introducimos esta verificación para evitar expandir
+            continue           #un estado en la frontera multiples veces desde diferentes estados.
+        alcanzados[v] = 1
+        if problem.isGoalState(v):
+            return camino
+        for elemento_vecino in problem.getSuccessors(v):
+            vecino = elemento_vecino[0]
+            accion = elemento_vecino[1]
+            if alcanzados[vecino] == 0:
+                frontera.push((vecino,camino + [accion]))
+    return []
 
 
 def breadthFirstSearch(problem: SearchProblem):
