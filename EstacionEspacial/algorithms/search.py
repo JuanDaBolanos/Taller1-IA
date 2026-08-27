@@ -205,26 +205,30 @@ def uniformCostSearch(problem: SearchProblem):
         return None
     
     Al probar esta nueva implementación el algoritmo de búsqueda corría completamente. Sin embargo, revisando
-    nuevamente se descubrió un error que hacía que el costo del camino encontrado no fuera el más óptimo, debido
-    a que la variable costo se actualizaba en cada sucesor con el mismo estado.
+    nuevamente se descubrió un error que hacía que el costo del camino encontrado no fuera el más óptimo y que
+    se expandieran más nodos de los necesarios, debido a que la variable costo se actualizaba en cada sucesor 
+    con el mismo estado y que un nodo alcanzado se guardaba nuevamente si tenía un costo diferente.
     
     """
     #Versión final
     nodoInicial = problem.getStartState()
     frontera = utils.PriorityQueue()
-    utils.PriorityQueue.push(frontera, (nodoInicial, [], 0), 0)
+    frontera.push((nodoInicial, [], 0), 0)
     alcanzados = utils.Counter()
+    alcanzados[nodoInicial] = 0
     
-    while utils.PriorityQueue.isEmpty(frontera) is False:
-        nodo, acciones, costo = utils.PriorityQueue.pop(frontera)
+    while frontera.isEmpty() is False:
+        nodo, acciones, costo = frontera.pop()
+        
         if problem.isGoalState(nodo):
             return acciones
-        alcanzados[nodo] += 1
+        
         for hijo in problem.getSuccessors(nodo):
             estadoHijo = hijo[0]
             accionHijo = hijo[1]
             costoHijo = hijo[2] + costo
-            if alcanzados[estadoHijo] == 0:
+            if alcanzados[estadoHijo] == 0 or costoHijo < alcanzados[estadoHijo]:
+                alcanzados[estadoHijo] = costoHijo
                 utils.PriorityQueue.update(frontera, (estadoHijo, acciones+[accionHijo] , costoHijo), costoHijo)
     
     return None
