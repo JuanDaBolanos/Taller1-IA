@@ -58,17 +58,17 @@ def depthFirstSearch(problem: SearchProblem):
     frontera = utils.Stack()
     inicial = (problem.getStartState(),[]) 
     frontera.push(inicial)
+    alcanzados[inicial[0]] = 1 #Cambio con ayuda de la IA, marcar el vertice inicial como visitado.
     while frontera.isEmpty() != True:
         v,camino = frontera.pop()
-        if alcanzados[v] == 1: #Con ayuda de la IA introducimos esta verificación para evitar expandir
-            continue           #un estado en la frontera multiples veces desde diferentes estados.
-        alcanzados[v] = 1
+        
         if problem.isGoalState(v):
             return camino
         for elemento_vecino in problem.getSuccessors(v):
             vecino = elemento_vecino[0]
             accion = elemento_vecino[1]
             if alcanzados[vecino] == 0:
+                alcanzados[vecino] = 1 #Cambio con ayuda de IA, marcar al ingresar vecinos en la frontera para evitar introducir varias veces el mismo vertice.
                 frontera.push((vecino,camino + [accion]))
     return []
 
